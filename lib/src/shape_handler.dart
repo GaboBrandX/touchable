@@ -8,6 +8,7 @@ class ShapeHandler {
   final List<Shape> _shapeStack = [];
   final List<ClipShapeItem> clipItems = [];
   final Set<GestureType> _registeredGestures = {};
+  static List<Shape> lastShapes = [];
 
   Set<GestureType> get registeredGestures => _registeredGestures;
 
@@ -91,18 +92,33 @@ class ShapeHandler {
     ScrollController? scrollController,
     AxisDirection direction = AxisDirection.down,
   }) async {
-    var touchPoint = _getActualOffsetFromScrollController(
-        TouchCanvasUtil.getPointFromGestureDetail(gesture.gestureDetail),
-        scrollController,
-        direction);
-    if (!_registeredGestures.contains(gesture.gestureType)) return;
-
-    var touchedShapes = _getTouchedShapes(touchPoint);
-    if (touchedShapes.isEmpty) return;
-    for (var touchedShape in touchedShapes) {
-      if (touchedShape.registeredGestures.contains(gesture.gestureType)) {
-        var callback = touchedShape.getCallbackFromGesture(gesture);
+    if (gesture.gestureType == GestureType.onExit) {
+      // _shapeStack.first[gesture.gestureType]?.call(gesture.gestureDetail)
+      if (lastShapes.isNotEmpty) {
+        var callback = lastShapes.first.getCallbackFromGesture(gesture);
         callback();
+      }
+    } else {
+      var touchPoint = _getActualOffsetFromScrollController(
+          TouchCanvasUtil.getPointFromGestureDetail(gesture.gestureDetail),
+          scrollController,
+          direction);
+      if (!_registeredGestures.contains(gesture.gestureType)) return;
+
+      var touchedShapes = _getTouchedShapes(touchPoint);
+      if (touchedShapes.isEmpty) return;
+
+      if (gesture.gestureType == GestureType.onExit ||
+          gesture.gestureType == GestureType.onEnter ||
+          gesture.gestureType == GestureType.onHover) {
+        lastShapes = touchedShapes;
+      }
+
+      for (var touchedShape in touchedShapes) {
+        if (touchedShape.registeredGestures.contains(gesture.gestureType)) {
+          var callback = touchedShape.getCallbackFromGesture(gesture);
+          callback();
+        }
       }
     }
   }

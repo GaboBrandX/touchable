@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:touchable/src/types/types.dart';
 
 ///[CanvasTouchDetector] widget detects the gestures on your [CustomPaint] widget.
@@ -169,6 +170,7 @@ class _CanvasTouchDetectorState extends State<CanvasTouchDetector> {
         onPanDown: !widget.gesturesToOverride.contains(GestureType.onPanDown)
             ? null
             : (tapDetail) {
+                print('onPanDown: ${tapDetail.localPosition}');
                 touchController.add(Gesture(GestureType.onPanDown, tapDetail));
               },
         onSecondaryTapDown: !widget.gesturesToOverride
@@ -189,21 +191,26 @@ class _CanvasTouchDetectorState extends State<CanvasTouchDetector> {
           onEnter: !widget.gesturesToOverride.contains(GestureType.onEnter)
               ? null
               : (mouseEnterDetail) {
-                  print('onEnter: ${mouseEnterDetail.original?.localPosition}');
-                  touchController.add(
-                      Gesture(GestureType.onEnter, mouseEnterDetail.original));
+                  //TODO: creating a new object of PainterEvent is not convient
+                  PointerEnterEvent event = PointerEnterEvent(
+                      position: mouseEnterDetail.localPosition);
+                  touchController.add(Gesture(GestureType.onEnter, event));
                 },
           onExit: !widget.gesturesToOverride.contains(GestureType.onExit)
               ? null
               : (mouseExitDetail) {
-                  touchController.add(
-                      Gesture(GestureType.onExit, mouseExitDetail.original));
+                  //TODO: creating a new object of PainterEvent is not convient
+                  PointerExitEvent event =
+                      PointerExitEvent(position: mouseExitDetail.localPosition);
+                  touchController.add(Gesture(GestureType.onExit, event));
                 },
           onHover: !widget.gesturesToOverride.contains(GestureType.onHover)
               ? null
               : (mouseHoverDetail) {
-                  touchController.add(
-                      Gesture(GestureType.onHover, mouseHoverDetail.original));
+                  //TODO: creating a new object of PainterEvent is not convient
+                  PointerHoverEvent event = PointerHoverEvent(
+                      position: mouseHoverDetail.localPosition);
+                  touchController.add(Gesture(GestureType.onHover, event));
                 },
           child: Builder(
             builder: (context) {
